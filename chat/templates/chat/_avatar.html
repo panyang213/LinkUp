@@ -1,0 +1,1 @@
+{% if p.photo_url %}<img class="avatar {{ size }}" src="{{ p.photo_url }}" alt="">{% else %}<span class="avatar {{ size }}" aria-hidden="true">{{ p.nickname|slice:":1"|upper }}</span>{% endif %}

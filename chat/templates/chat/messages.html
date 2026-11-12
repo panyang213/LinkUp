@@ -1,0 +1,51 @@
+{% extends "chat/app_base.html" %}
+{% load static %}
+{% block title %}Messages · LinkUp{% endblock %}
+{% block app_content %}
+<div class="dm-layout {% if active %}has-active{% endif %}">
+  <aside class="dm-list" aria-label="Conversations">
+    <h1 class="panel-title fs-4 px-2">Messages</h1>
+    {% for c in conversations %}
+      <a class="row-lu {% if c.profile.uid == with_uid %}selected{% endif %}" href="{% url 'messages' %}?with={{ c.profile.uid }}" data-conv="{{ c.profile.uid }}">
+        {% include "chat/_avatar.html" with p=c.profile size="" %}
+        <div class="grow min-w-0"><div class="fw-semibold">{{ c.profile.nickname }}</div>
+          <div class="muted small text-truncate" data-preview>{% if c.last_mine %}You: {% endif %}{{ c.last_message }}</div></div>
+        <b class="count" data-unread {% if not c.unread %}hidden{% endif %}>{{ c.unread }}</b>
+      </a>
+    {% empty %}
+      <div class="empty-lu"><i class="bi bi-chat-dots"></i><p>No saved conversations yet.<br>Start one from your <a href="{% url 'friends' %}">friends list</a>.</p></div>
+    {% endfor %}
+  </aside>
+
+  <section class="dm-thread">
+  {% if active %}
+    <div class="chat-head">
+      <a class="d-md-none icon-btn" href="{% url 'messages' %}" aria-label="Back to conversations"><i class="bi bi-arrow-left"></i></a>
+      <div class="chat-peer">{% include "chat/_avatar.html" with p=active size="" %}
+        <div><a class="peer-name text-decoration-none" href="{% url 'user_profile' active.uid %}">{{ active.nickname }}</a>
+          <div class="peer-meta"><span class="dot {% if active.online %}on{% endif %}" id="peer-dot"></span> <span id="peer-status">{% if active.online %}Online{% else %}Offline{% endif %}</span></div></div></div>
+      <div class="dropdown"><button class="icon-btn" data-bs-toggle="dropdown" aria-label="Conversation options"><i class="bi bi-three-dots"></i></button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button class="dropdown-item" type="button" id="delete-conv"><i class="bi bi-trash me-2"></i>Delete conversation</button></li>
+          <li><button class="dropdown-item" type="button" data-action="block" data-uid="{{ active.uid }}"><i class="bi bi-slash-circle me-2"></i>Block</button></li>
+          <li><button class="dropdown-item text-danger" type="button" data-action="report" data-uid="{{ active.uid }}"><i class="bi bi-flag me-2"></i>Report</button></li>
+        </ul></div>
+    </div>
+    <div id="messages" class="messages" role="log" aria-live="polite"></div>
+    <div id="typing" class="typing-line" hidden><span class="t-dots"><span></span><span></span><span></span></span> {{ active.nickname }} is typing</div>
+    {% if active.relationship == "friends" %}
+    <div class="composer"><textarea id="composer-input" rows="1" maxlength="1000" placeholder="Write a message" aria-label="Message"></textarea>
+      <button class="btn btn-accent" id="send-btn" type="button" aria-label="Send"><i class="bi bi-send-fill"></i></button></div>
+    {% else %}
+    <div class="composer muted">You’re no longer friends, so you can’t send new messages.</div>
+    {% endif %}
+  {% else %}
+    <div class="empty-lu m-auto"><i class="bi bi-chat-heart"></i><p>Pick a conversation to read your message history.</p></div>
+  {% endif %}
+  </section>
+</div>
+{% include "chat/_report_modal.html" %}
+{{ with_uid|json_script:"dm-with" }}
+{{ me_uid|json_script:"dm-me" }}
+{% endblock %}
+{% block page_scripts %}<script src="{% static 'chat/js/messages.js' %}"></script>{% endblock %}

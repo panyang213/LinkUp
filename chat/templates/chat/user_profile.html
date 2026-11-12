@@ -1,0 +1,27 @@
+{% extends "chat/app_base.html" %}
+{% block title %}{{ p.nickname }} · LinkUp{% endblock %}
+{% block app_content %}
+<section class="card-lu mx-auto" style="max-width:560px" data-uid="{{ p.uid }}">
+  <div class="d-flex gap-3 align-items-center mb-3">{% include "chat/_avatar.html" with p=p size="lg" %}
+    <div><h1 class="panel-title fs-3 mb-0">{{ p.nickname }}</h1>
+      <div class="muted small"><span class="dot {% if p.online %}on{% endif %}"></span> {% if p.online %}Online{% else %}Offline{% endif %}</div></div></div>
+  {% if p.full %}
+    <p>{{ p.bio|default:"No bio yet." }}</p>
+    <div class="tags mb-2">{% for i in p.interests %}<span class="tag">{{ i }}</span>{% endfor %}</div>
+    <p class="muted small">{% if p.age %}{{ p.age }}{% endif %}{% if p.gender and p.gender != "prefer_not" %} · {{ p.gender|title }}{% endif %}</p>
+  {% else %}<p class="muted">This person shares their details with friends only.</p>{% endif %}
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    {% if p.relationship == "self" %}<a class="btn btn-outline-secondary" href="{% url 'profile' %}">Edit profile</a>
+    {% elif p.relationship == "friends" %}
+      <a class="btn btn-accent" href="{% url 'messages' %}?with={{ p.uid }}">Message</a>
+      <button class="btn btn-outline-secondary" data-action="remove" data-uid="{{ p.uid }}">Remove friend</button>
+    {% elif p.relationship == "request_sent" %}<button class="btn btn-outline-secondary" disabled>Request sent</button>
+    {% elif p.relationship == "request_received" %}<button class="btn btn-accent" data-action="add" data-uid="{{ p.uid }}">Accept request</button>
+    {% else %}<button class="btn btn-aeccnt" data-action="add" data-uid="{{ p.uid }}">Add friend</button>{% endif %}
+    {% if p.relationship != "self" %}
+      <button class="btn btn-outline-secondary" data-action="block" data-uid="{{ p.uid }}">Block</button>
+      <button class="btn btn-outline-danger" data-action="report" data-uid="{{ p.uid }}">Report</button>{% endif %}
+  </div>
+</section>
+{% include "chat/_report_modal.html" %}
+{% endblock %}

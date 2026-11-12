@@ -1,0 +1,33 @@
+{% extends "chat/base.html" %}
+{% load static %}
+{% block body_class %}page-app{% endblock %}
+{% block topbar_extra %}
+<div class="dropdown">
+  <button class="icon-btn position-relative" type="button" id="bell-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-label="Notifications">
+    <i class="bi bi-bell"></i><span class="badge-dot" id="bell-badge" hidden></span>
+  </button>
+  <div class="dropdown-menu dropdown-menu-end notif-menu" aria-labelledby="bell-btn">
+    <div class="notif-head">Notifications</div>
+    <div id="notif-list"><div class="muted p-3">Loading…</div></div>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="app-shell">
+  <nav class="sidenav" aria-label="Main">
+    <a class="nav-link-lu {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="bi bi-house"></i><span>Home</span></a>
+    <a class="nav-link-lu" href="{% url 'chat' %}"><i class="bi bi-shuffle"></i><span>Random chat</span></a>
+    <a class="nav-link-lu {% if request.resolver_match.url_name == 'friends' %}active{% endif %}" href="{% url 'friends' %}"><i class="bi bi-people"></i><span>Friends</span>{% if pending_requests %}<b class="count">{{ pending_requests }}</b>{% endif %}</a>
+    <a class="nav-link-lu {% if request.resolver_match.url_name == 'messages' %}active{% endif %}" href="{% url 'messages' %}"><i class="bi bi-chat-dots"></i><span>Messages</span>{% if unread_total %}<b class="count" id="nav-unread">{{ unread_total }}</b>{% endif %}</a>
+    <a class="nav-link-lu {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}"><i class="bi bi-person-gear"></i><span>Profile &amp; settings</span></a>
+    <form method="post" action="{% url 'leave' %}" class="nav-signout">{% csrf_token %}
+      <button class="nav-link-lu w-100 border-0 bg-transparent" type="submit"><i class="bi bi-box-arrow-left"></i><span>Sign out</span></button>
+    </form>
+  </nav>
+  <div class="app-content">{% block app_content %}{% endblock %}</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'chat/js/app.js' %}"></script>
+{% block page_scripts %}{% endblock %}
+{% endblock %}

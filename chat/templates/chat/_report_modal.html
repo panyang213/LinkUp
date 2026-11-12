@@ -1,0 +1,14 @@
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title fs-5" id="reportLabel">Report this person</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <label for="report-reason" class="form-label">Reason</label>
+      <select id="report-reason" class="form-select mb-3">{% for k, l in report_reasons %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+      <label for="report-details" class="form-label">What happened? <span class="muted">(optional)</span></label>
+      <textarea id="report-details" class="form-control" rows="3" maxlength="500"></textarea>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-danger" id="report-submit">Send report</button></div>
+  </div></div>
+</div>

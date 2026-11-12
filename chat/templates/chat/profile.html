@@ -1,0 +1,22 @@
+{% extends "chat/app_base.html" %}
+{% block title %}Profile · LinkUp{% endblock %}
+{% block app_content %}
+<h1 class="panel-title">Profile &amp; settings</h1>
+<div class="grid-2">
+  <section class="card-lu">
+    <div class="d-flex gap-3 align-items-center mb-3">{% include "chat/_avatar.html" with p=me size="lg" %}
+      <div><div class="peer-name">{{ me.nickname }}</div><div class="muted small">Signed in with Google</div></div></div>
+    <h2 class="card-title-lu">Edit profile</h2>
+    {% include "chat/_profile_form.html" %}
+  </section>
+  <section class="card-lu">
+    <h2 class="card-title-lu">Privacy</h2>
+    <p class="muted">Choose who sees your bio, age, gender and interests with the visibility setting. “Hidden from search” means only your friends can find you.</p>
+    <ul class="muted ps-3">
+      <li>Your email and Google account details are never shown to other people.</li>
+      <li>Random-chat strangers only see your nickname, mood and shared interests.</li>
+      <li>Random chats are never saved. Only conversations with friends are.</li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

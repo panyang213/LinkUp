@@ -1,0 +1,77 @@
+{% extends "chat/app_base.html" %}
+{% block title %}Home · LinkUp{% endblock %}
+{% block app_content %}
+{% if needs_profile %}
+  <h1 class="panel-title">Welcome to LinkUp</h1>
+  <p class="muted">Finish your profile to get started. It takes a minute.</p>
+  <div class="modal fade" id="profileModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true" data-auto-open="1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title fs-5" id="profileModalLabel">Set up your profile</h2></div>
+      <div class="modal-body">{% include "chat/_profile_form.html" %}</div>
+    </div></div>
+  </div>
+{% else %}
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="panel-title mb-1">Welcome back, {{ me.nickname }}.</h1>
+      <p class="muted mb-0">{{ online_total }} signed-in {% if online_total == 1 %}person is{% else %}people are{% endif %} online.</p>
+    </div>
+    <a class="btn btn-accent btn-lg" href="{% url 'chat' %}">Start random chat</a>
+  </div>
+
+  <div class="grid-2">
+    <section class="card-lu">
+      <h2 class="card-title-lu">Today’s question</h2>
+      <p class="daily-q">{{ daily_question }}</p>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'chat' %}">Talk about it with a stranger</a>
+    </section>
+
+    <section class="card-lu profile-preview">
+      <div class="d-flex gap-3 align-items-center">
+        {% include "chat/_avatar.html" with p=me size="lg" %}
+        <div class="min-w-0"><div class="peer-name">{{ me.nickname }}</div>
+          <div class="muted small">{{ me.age }} · {{ me.visibility|title }} profile</div></div>
+      </div>
+      <p class="my-2">{{ me.bio }}</p>
+      <div class="tags">{% for i in me.interests %}<span class="tag">{{ i }}</span>{% endfor %}</div>
+      <a class="small" href="{% url 'profile' %}">Edit profile</a>
+    </section>
+
+    <section class="card-lu">
+      <h2 class="card-title-lu">Recent conversations</h2>
+      {% for c in conversations %}
+        <a class="row-lu" href="{% url 'messages' %}?with={{ c.profile.uid }}">
+          {% include "chat/_avatar.html" with p=c.profile size="" %}
+          <div class="grow min-w-0"><div class="fw-semibold">{{ c.profile.nickname }}</div>
+            <div class="muted small text-truncate">{% if c.last_mine %}You: {% endif %}{{ c.last_message }}</div></div>
+          {% if c.unread %}<b class="count">{{ c.unread }}</b>{% endif %}
+        </a>
+      {% empty %}
+        <p class="muted mb-0">No conversations yet. Add a friend, then say hello from the Friends page.</p>
+      {% endfor %}
+    </section>
+
+    <section class="card-lu">
+      <h2 class="card-title-lu">Friends online <span class="muted fw-normal">({{ online_friends|length }} of {{ friend_count }})</span></h2>
+      {% for f in online_friends %}
+        <a class="row-lu" href="{% url 'messages' %}?with={{ f.uid }}">
+          {% include "chat/_avatar.html" with p=f size="" %}<span class="grow fw-semibold">{{ f.nickname }}</span><span class="dot on" title="Online"></span>
+        </a>
+      {% empty %}
+        <p class="muted mb-0">{% if friend_count %}None of your friends are online right now.{% else %}You haven’t added any friends yet.{% endif %}</p>
+      {% endfor %}
+      <a class="btn btn-sm btn-outline-secondary mt-2" href="{% url 'friends' %}">Find friends</a>
+    </section>
+
+    {% if incoming %}
+    <section class="card-lu">
+      <h2 class="card-title-lu">Friend requests</h2>
+      {% for r in incoming %}
+        <a class="row-lu" href="{% url 'friends' %}">{% include "chat/_avatar.html" with p=r.profile size="" %}<span class="grow">{{ r.profile.nickname }} wants to be friends</span></a>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+{% block page_scripts %}<script>const m=document.querySelector('[data-auto-open]');if(m)new bootstrap.Modal(m).show();</script>{% endblock %}

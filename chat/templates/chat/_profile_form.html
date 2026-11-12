@@ -1,0 +1,50 @@
+<form method="post" action="{% url 'profile_save' %}" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-sm-6">
+      <label class="form-label" for="id_nickname">Nickname</label>
+      <input class="form-control {% if form.nickname.errors %}is-invalid{% endif %}" id="id_nickname" name="nickname" maxlength="20" value="{{ form.nickname.value|default_if_none:'' }}" required>
+      {% for e in form.nickname.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="col-6 col-sm-3">
+      <label class="form-label" for="id_age">Age</label>
+      <input class="form-control {% if form.age.errors %}is-invalid{% endif %}" id="id_age" name="age" type="number" min="18" max="99" value="{{ form.age.value|default_if_none:'' }}" required>
+      {% for e in form.age.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="col-6 col-sm-3">
+      <label class="form-label" for="id_gender">Gender</label>
+      <select class="form-select" id="id_gender" name="gender">
+        {% for v, l in form.fields.gender.choices %}<option value="{{ v }}" {% if form.gender.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label" for="id_bio">Short bio</label>
+      <textarea class="form-control {% if form.bio.errors %}is-invalid{% endif %}" id="id_bio" name="bio" rows="2" maxlength="160" required>{{ form.bio.value|default_if_none:'' }}</textarea>
+      {% for e in form.bio.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="col-12">
+      <label class="form-label" for="id_interests">Hobbies and interests</label>
+      <input class="form-control {% if form.interests.errors %}is-invalid{% endif %}" id="id_interests" name="interests" maxlength="200" placeholder="music, hiking, film" value="{{ form.interests.value|default_if_none:'' }}" required>
+      {% for e in form.interests.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="col-12">
+      <label class="form-label" for="id_visibility">Who can see your profile details</label>
+      <select class="form-select" id="id_visibility" name="visibility">
+        {% for v, l in visibility_choices %}<option value="{{ v }}" {% if form.visibility.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+    </div>
+    
+    <div class="col-12">
+      <label class="form-label" for="id_photo">Profile picture <span class="muted">(optional, JPEG/PNG/WebP, max 2 MB)</span></label>
+      <input class="form-control {% if form.photo.errors %}is-invalid{% endif %}" id="id_photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+      {% for e in form.photo.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      {% if me.photo_url %}<div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="remove_photo" id="id_rm"><label class="form-check-label" for="id_rm">Remove current picture</label></div>{% endif %}
+    </div>
+  </div>
+  <div class="mt-4 d-flex gap-2 justify-content-end">{{ actions }}<button class="btn btn-accent" type="submit">Save profile</button></div>
+</form>

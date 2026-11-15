@@ -61,7 +61,7 @@ def enter_anonymously(request):
 def chat(request):
     if not request.session.get("anon_id"):
         return redirect("landing")
-    if not request.session.get("nickname"):  # signed in but profile not finished
+    if not request.session.get("nickname"): 
         return redirect("dashboard")
     return render(request, "chat/chat.html", {
         "nickname": request.session["nickname"],

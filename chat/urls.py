@@ -29,4 +29,5 @@ urlpatterns = [
     path("api/report/", a.api_report),
     path("api/notifications/", a.api_notifications),
     path("api/notifications/read/", a.api_notifications_read),
+    path("media/<path:path>", a.media_file, name="media"),
 ]

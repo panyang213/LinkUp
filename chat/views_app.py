@@ -5,11 +5,11 @@ import time
 from collections import defaultdict, deque
 
 from django.conf import settings
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
-from . import captcha, firebase_auth, presence, services
+from . import captcha, firebase_auth, media, presence, services
 from .content import daily_question
 from .forms import ProfileForm
 from .models import Report
@@ -169,13 +169,14 @@ def profile_save(request):
             "photo_url": existing.get("photo_url", "")}
     if cd["photo"]:
         try:
-            data["photo_url"] = get_store().avatar_put(uid, cd["photo"]["data"], cd["photo"]["content_type"])
+            data["photo_url"] = media.save_avatar(uid, cd["photo"]["data"], cd["photo"]["content_type"])
         except Exception:
             form.add_error("photo", "Photo upload isn't available right now. Save without a photo or try later.")
             if existing.get("nickname"):
                 return render(request, "chat/profile.html", _profile_ctx(request, form))
             return render(request, "chat/dashboard.html", _dashboard_ctx(request, form))
     elif cd["remove_photo"]:
+        media.delete_avatar(uid)
         data["photo_url"] = ""
     services.save_profile(uid, data)
     request.session["nickname"] = data["nickname"]
@@ -191,6 +192,16 @@ def user_profile(request, other):
     return render(request, "chat/user_profile.html", {
         "p": prof, "report_reasons": Report.REASONS})
 
+@registered_only
+def media_file(request, path):
+    """Serve an uploaded picture from the media/ folder, to signed-in users only."""
+    target = media.resolve(path)
+    if not target:
+        raise Http404
+    response = FileResponse(open(target, "rb"), content_type=media.content_type_of(target))
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "private, max-age=86400"   # file names are unique per upload
+    return response
 
 @registered_only
 def avatar(request, uid):

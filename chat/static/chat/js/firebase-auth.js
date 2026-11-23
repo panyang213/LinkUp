@@ -1,4 +1,3 @@
-// Google sign-in through Firebase Authentication, then exchange the ID token for a Django session.
 (() => {
   const btn = document.getElementById("google-btn");
   const errEl = document.getElementById("google-error");

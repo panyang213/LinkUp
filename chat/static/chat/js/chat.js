@@ -2,10 +2,12 @@
 // Messages live only in the DOM. Nothing is written to localStorage/sessionStorage/cookies.
 (() => {
   const $ = (s) => document.querySelector(s);
+  // Attach a listener only if the element exists, so one missing element can never stop the whole script.
+  const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
   const cfg = JSON.parse($("#client-config").textContent);
   const panels = { idle: $("#panel-idle"), searching: $("#panel-searching"), chat: $("#panel-chat") };
   const messagesEl = $("#messages"), input = $("#composer-input"), sendBtn = $("#send-btn");
-  const typingEl = $("#typing"), banner = $("#conn-banner"), startBtn = $("#start-btn");
+  const typingEl = $("#typing"), startBtn = $("#start-btn");
   const tips = ["Be kind — there’s a real person on the other side.", "Stuck? Tap the lightbulb for a topic.", "Don’t share personal details with strangers."];
   let ws, partner = null, peerPresent = false, typingOff = null, iTyping = false, tipTimer = null;
 
@@ -17,12 +19,13 @@
   function connect() {
     const proto = location.protocol === "https:" ? "wss" : "ws";
     ws = new WebSocket(`${proto}://${location.host}/ws/chat/`);
-    ws.onopen = () => { banner.hidden = true; startBtn.disabled = false; };
+    ws.onopen = () => { startBtn.disabled = false; };
     ws.onclose = (e) => {
       startBtn.disabled = true;
+      document.dispatchEvent(new CustomEvent("linkup:event", { detail: { type: "socket_closed" } }));
       clearMessages();
       if (e.code === 4401) { location.href = "/"; return; }
-      banner.hidden = false; show("idle");
+      show("idle"); setTimeout(connect, 3000);
     };
     ws.onmessage = (e) => handle(JSON.parse(e.data));
   }
@@ -96,7 +99,7 @@
     messagesEl.appendChild(el); scrollDown(); return el;
   }
   const scrollDown = () => (messagesEl.scrollTop = messagesEl.scrollHeight);
-  function setComposer(on) { input.disabled = !on; sendBtn.disabled = !on; $("#topic-btn").disabled = !on; }
+  function setComposer(enabled) { input.disabled = !enabled; sendBtn.disabled = !enabled; const t = $("#topic-btn"); if (t) t.disabled = !enabled; }
 
   function submitMessage() {
     const text = input.value.trim();
@@ -126,18 +129,20 @@
   }
   function findNext() { send({ type: "next" }); }
   startBtn.addEventListener("click", startSearch);
-  $("#cancel-btn").addEventListener("click", () => send({ type: "end" }));
-  $("#next-btn").addEventListener("click", findNext);
-  $("#end-btn").addEventListener("click", () => send({ type: "end" }));
-  $("#block-btn").addEventListener("click", () => { if (confirm("Block this person? You won’t be matched again.")) send({ type: "block" }); });
-  $("#topic-btn").addEventListener("click", () => { input.value = pick(cfg.topics); autoGrow(); input.focus(); });
-  $("#use-daily").addEventListener("click", () => { startSearch(); const q = $(".daily-q").textContent; const once = (e) => { if (e.detail.type === "matched") { input.value = q; autoGrow(); document.removeEventListener("linkup:event", once); } }; document.addEventListener("linkup:event", once); });
-  $("#reconnect-btn").addEventListener("click", connect);
-  $("#report-submit").addEventListener("click", () => {
+  on("#cancel-btn", "click", () => send({ type: "end" }));
+  on("#next-btn", "click", findNext);
+  on("#end-btn", "click", () => send({ type: "end" }));
+  on("#block-btn", "click", () => { if (confirm("Block this person? You won’t be matched again.")) send({ type: "block" }); });
+  on("#topic-btn", "click", () => { input.value = pick(cfg.topics); autoGrow(); input.focus(); });
+  on("#use-daily", "click", () => { startSearch(); const q = $(".daily-q").textContent; const once = (e) => { if (e.detail.type === "matched") { input.value = q; autoGrow(); document.removeEventListener("linkup:event", once); } }; document.addEventListener("linkup:event", once); });
+  on("#report-submit", "click", () => {
     send({ type: "report", reason: $("#report-reason").value, details: $("#report-details").value });
     $("#report-details").value = "";
-    bootstrap.Modal.getInstance($("#reportModal")).hide();
+    const modal = $("#reportModal"); if (modal && window.bootstrap) bootstrap.Modal.getInstance(modal)?.hide();
   });
+
+  // used by call.js (voice / video calls)
+  window.LinkUpChat = { send, connected: () => !!ws && ws.readyState === 1, notice: addSystem };
 
   setComposer(false);
   connect();

@@ -10,10 +10,6 @@
 {% endblock %}
 {% block content %}
 <div class="stage container">
-  <div id="conn-banner" class="alert alert-warning d-flex align-items-center justify-content-between" role="alert" hidden>
-    <span>Connection lost.</span>
-    <button class="btn btn-sm btn-warning" type="button" id="reconnect-btn">Reconnect</button>
-  </div>
 
   <!-- Idle: setup -->
   <section id="panel-idle" class="panel">
@@ -61,6 +57,8 @@
         </div>
       </div>
       <div class="chat-actions">
+        <button class="btn btn-sm btn-outline-secondary call-start" type="button" id="voice-call-btn" aria-label="Voice call" title="Voice call" disabled><i class="bi bi-telephone"></i></button>
+        <button class="btn btn-sm btn-outline-secondary call-start" type="button" id="video-call-btn" aria-label="Video call" title="Video call" disabled><i class="bi bi-camera-video"></i></button>
         <button class="btn btn-sm btn-accent" type="button" id="next-btn"><i class="bi bi-skip-forward-fill"></i> Next</button>
         <button class="btn btn-sm btn-outline-secondary" type="button" id="end-btn">End chat</button>
         <div class="dropdown">
@@ -69,6 +67,27 @@
             <li><button class="dropdown-item" type="button" id="block-btn"><i class="bi bi-slash-circle me-2"></i>Block this person</button></li>
             <li><button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#reportModal"><i class="bi bi-flag me-2"></i>Report</button></li>
           </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Call area: appears above the messages during a call, so the chat stays visible -->
+    <div id="call-area" class="call-area" hidden>
+      <div class="call-video" id="call-video-wrap" hidden>
+        <video id="remote-video" autoplay playsinline></video>
+        <video id="local-video" autoplay playsinline muted></video>
+        <div class="call-badge" id="remote-cam-off" hidden><i class="bi bi-camera-video-off me-2"></i>Camera off</div>
+      </div>
+      <audio id="remote-audio" autoplay></audio>
+      <div class="call-bar">
+        <div class="call-info">
+          <span class="dot on" aria-hidden="true"></span>
+          <div><div class="call-title" id="call-title">Call</div><div class="call-status" id="call-status" aria-live="polite">Connecting…</div></div>
+        </div>
+        <div class="call-controls">
+          <button class="call-btn" type="button" id="call-mic-btn" aria-label="Mute microphone" aria-pressed="false" title="Mute / unmute"><i class="bi bi-mic-fill"></i></button>
+          <button class="call-btn" type="button" id="call-cam-btn" aria-label="Turn camera off" aria-pressed="false" title="Camera on / off" hidden><i class="bi bi-camera-video-fill"></i></button>
+          <button class="call-btn call-btn-end" type="button" id="call-end-btn" aria-label="End call" title="End call"><i class="bi bi-telephone-x-fill"></i></button>
         </div>
       </div>
     </div>
@@ -82,6 +101,18 @@
       <button class="btn btn-accent" type="button" id="send-btn" aria-label="Send"><i class="bi bi-send-fill"></i></button>
     </div>
   </section>
+</div>
+
+<!-- Incoming call -->
+<div id="call-incoming" class="call-incoming" role="alertdialog" aria-labelledby="incoming-title" aria-live="assertive" hidden>
+  <div class="call-incoming-card">
+    <span class="call-incoming-icon" aria-hidden="true"><i class="bi bi-telephone-inbound-fill" id="incoming-icon"></i></span>
+    <div class="grow"><div class="fw-semibold" id="incoming-title">Incoming call</div><div class="muted small" id="incoming-sub">Voice call</div></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" type="button" id="incoming-decline">Decline</button>
+      <button class="btn btn-accent" type="button" id="incoming-accept">Accept</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportLabel" aria-hidden="true">
@@ -110,4 +141,5 @@
 
 {{ client_config|json_script:"client-config" }}
 {% endblock %}
-{% block scripts %}<script src="{% static 'chat/js/chat.js' %}"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'chat/js/chat.js' %}"></script>
+<script src="{% static 'chat/js/call.js' %}"></script>{% endblock %}

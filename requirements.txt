@@ -1,6 +1,9 @@
 Django>=5.0,<6.0
 channels>=4.1
 daphne>=4.1
-firebase-admin>=6.5 
-channels-redis>=4.2      
-git 
+channels-redis>=4.2
+firebase-admin>=6.5
+uvicorn[standard]>=0.30.0
+whitenoise>=6.0.0
+dj-database-url>=2.0.0
+psycopg2-binary>=2.9.0

@@ -368,13 +368,18 @@ _store = None
 
 
 def get_store():
+    """DATA_BACKEND=django (default): Django's own database. firestore: Firebase. memory: tests/demo."""
     global _store
     if _store is None:
         from django.conf import settings
-        if settings.FIREBASE_CREDENTIALS:
+        backend = settings.DATA_BACKEND
+        if backend == "firestore":
             from . import firebase_auth
             firebase_auth.init_app()
             _store = CachingStore(FirestoreStore())
-        else:
+        elif backend == "memory":
             _store = CachingStore(MemoryStore())
+        else:
+            from .store_db import DjangoStore
+            _store = DjangoStore()
     return _store

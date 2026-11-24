@@ -68,7 +68,8 @@ def chat(request):
         "moods": MOODS,
         "daily_question": daily_question(),
         "report_reasons": Report.REASONS,
-        "client_config": json.dumps({"topics": TOPICS, "icebreakers": ICEBREAKERS}),
+        "client_config": {"topics": TOPICS, "icebreakers": ICEBREAKERS,      # json_script turns this into JSON itself
+                    "ice_servers": settings.WEBRTC_ICE_SERVERS},
         "online": matchmaker.online,
     })
 

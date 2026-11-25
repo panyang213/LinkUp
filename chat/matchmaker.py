@@ -42,10 +42,17 @@ class Matchmaker:
         if len(self.blocks) < MAX_BLOCK_ENTRIES:
             self.blocks.setdefault(blocker_sid, set()).add(blocked_sid)
 
+
     def pair(self, consumer):
-        """Return the best waiting partner (removing them from the queue), or queue
-        `consumer` and return None. Has no awaits, so it can't be interleaved."""
-        best, best_score = None, -1
+        """Find the best active waiting partner, or add this user to the queue."""
+        self.dequeue(consumer)
+        self.waiting = [
+            other for other in self.waiting
+            if self.users.get(other.channel_name) is other
+        ]
+        best = None
+        best_score = -1
+
         for other in self.waiting:
             if other is consumer or other.sid == consumer.sid:
                 continue
@@ -53,13 +60,14 @@ class Matchmaker:
                 continue
             score = len(set(consumer.interests) & set(other.interests))
             if score > best_score:
-                best, best_score = other, score
+                best = other
+                best_score = score
         if best:
-            self.waiting.remove(best)
+            self.dequeue(best)
             return best
-        if consumer not in self.waiting:
-            self.waiting.append(consumer)
+        self.waiting.append(consumer)
         return None
+
 
     async def broadcast_online(self):
         layer = get_channel_layer()

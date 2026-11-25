@@ -71,11 +71,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close(code=4401)
             return
         self.sid, self.nick = sid, nick
-        self.partner = None        # channel name of current partner
+        self.partner = None    
         self.partner_sid = None
         self.interests, self.mood = [], ""
         self.sent_times = deque()
-        self.call = None           # {'id','kind','role','state'} while a call is ringing or active
+        self.call = None       
         self._ring_task = None
         self._ice_count = 0
         await self.accept()
@@ -100,7 +100,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             })
 
     async def leave_partner(self):
-        await self.clear_call()          # leaving a person always ends any call with them
+        await self.clear_call()    
         if self.partner:
             await self.to_partner({"type": "partner_left"}, unpair=True)
         self.partner = self.partner_sid = None
@@ -146,16 +146,45 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if other:
             await self.connect_pair(other)
 
+
     async def connect_pair(self, other):
-        self.partner, self.partner_sid = other.channel_name, other.sid
-        other.partner, other.partner_sid = self.channel_name, self.sid
+        if matchmaker.users.get(self.channel_name) is not self:
+            return
+        if matchmaker.users.get(other.channel_name) is not other:
+            matchmaker.dequeue(self)
+            if self not in matchmaker.waiting:
+                matchmaker.waiting.append(self)
+            await self.send_json({"type": "searching"})
+            return
+        if self.partner or other.partner:
+            matchmaker.dequeue(self)
+            await self.send_json({"type": "searching"})
+            return
+        self.partner = other.channel_name
+        self.partner_sid = other.sid
+        other.partner = self.channel_name
+        other.partner_sid = self.sid
         shared = sorted(set(self.interests) & set(other.interests))
-        await self.send_json({"type": "matched", "partner": {
-            "nickname": other.nick, "mood": other.mood, "shared": shared}})
+        await self.send_json({
+            "type": "matched",
+            "partner": {
+                "nickname": other.nick,
+                "mood": other.mood,
+                "shared": shared
+            }
+        })
+
         await self.channel_layer.send(other.channel_name, {
-            "type": "relay", "from": self.channel_name,
-            "payload": {"type": "matched", "partner": {
-                "nickname": self.nick, "mood": self.mood, "shared": shared}},
+            "type": "relay",
+            "from": self.channel_name,
+            "payload": {
+                "type": "matched",
+                "partner": {
+                    "nickname": self.nick,
+                    "mood": self.mood,
+                    "shared": shared
+                }
+            }
         })
 
     async def on_end(self, data):

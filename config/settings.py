@@ -20,9 +20,10 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-m
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-if not CSRF_TRUSTED_ORIGINS[0]:
-    CSRF_TRUSTED_ORIGINS = ["http://192.168.8.36:8000"] 
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://192.168.8.36:8000"
+).split(",")
 
 INSTALLED_APPS = [
     "daphne", 
